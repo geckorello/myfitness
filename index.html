@@ -959,51 +959,67 @@
       font-size: 10px;
       color: var(--text-3);
     }
-    .wt-controls {
-      display: flex;
-      align-items: center;
-      gap: 6px;
+    /* drum wheel weight picker */
+    .wt-drum-outer {
+      position: relative;
+      height: 144px;
+      overflow: hidden;
       margin-bottom: 10px;
-    }
-    .wt-btn {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 12px;
-      font-weight: 500;
-      padding: 10px 10px;
-      border-radius: 6px;
-      border: 1px solid;
-      cursor: pointer;
-      transition: all 0.15s;
-      flex-shrink: 0;
-      min-width: 42px;
-      text-align: center;
-    }
-    .wt-btn.neg { color: var(--red);   background: rgba(224,80,80,0.08);   border-color: rgba(224,80,80,0.2); }
-    .wt-btn.pos { color: var(--green); background: rgba(72,200,120,0.08);  border-color: rgba(72,200,120,0.2); }
-    .wt-btn.neg:hover { background: rgba(224,80,80,0.18); }
-    .wt-btn.pos:hover { background: rgba(72,200,120,0.18); }
-    .wt-display {
-      flex: 1;
-      text-align: center;
+      border-radius: 10px;
       background: var(--surface-2);
       border: 1px solid var(--border-2);
-      border-radius: 8px;
-      padding: 8px 4px;
     }
-    .wt-val {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 24px;
-      font-weight: 500;
-      color: var(--green);
-      line-height: 1;
+    .wt-drum {
+      height: 100%;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      overscroll-behavior-y: contain;
     }
-    .wt-unit {
+    .wt-drum::-webkit-scrollbar { display: none; }
+    .drum-item {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      scroll-snap-align: center;
       font-family: 'IBM Plex Mono', monospace;
-      font-size: 12px;
+      font-size: 20px;
+      font-weight: 400;
       color: var(--text-3);
-      margin-left: 3px;
+      user-select: none;
     }
-    .wt-unit.hidden { display: none; }
+    .drum-item.selected {
+      color: var(--green);
+      font-size: 24px;
+      font-weight: 600;
+    }
+    .drum-fade-top, .drum-fade-bot {
+      position: absolute;
+      left: 0; right: 0;
+      height: 52px;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .drum-fade-top {
+      top: 0;
+      background: linear-gradient(to bottom, var(--surface-2) 20%, transparent);
+    }
+    .drum-fade-bot {
+      bottom: 0;
+      background: linear-gradient(to top, var(--surface-2) 20%, transparent);
+    }
+    .drum-center-band {
+      position: absolute;
+      left: 16px; right: 16px;
+      top: 50%; transform: translateY(-50%);
+      height: 48px;
+      border-top: 1px solid var(--border-2);
+      border-bottom: 1px solid var(--border-2);
+      pointer-events: none;
+      z-index: 1;
+    }
     .wt-last {
       display: flex;
       align-items: center;
@@ -1107,9 +1123,6 @@
       /* ── Weight tracker ── */
       .wt-lbl  { font-size: 12px; }
       .wt-plan { font-size: 13px; }
-      .wt-btn  { padding: 14px 8px; min-width: 52px; font-size: 15px; }
-      .wt-val  { font-size: 32px; }
-      .wt-display { padding: 10px 4px; }
       .wt-last-lbl { font-size: 12px; }
       .wt-last-val { font-size: 14px; }
       .wt-suggest  { font-size: 13px; padding: 4px 10px; }
@@ -1522,14 +1535,10 @@ function exCard(ex, dayId) {
             <span class="wt-lbl">My Weight</span>
             <span class="wt-plan">Plan: ${ex.kg}</span>
           </div>
-          <div class="wt-controls">
-            <button class="wt-btn neg" onclick="event.stopPropagation();adjWt(this,-5)">−5</button>
-            <button class="wt-btn neg" onclick="event.stopPropagation();adjWt(this,-2.5)">−2.5</button>
-            <div class="wt-display">
-              <span class="wt-val">—</span><span class="wt-unit hidden"> kg</span>
-            </div>
-            <button class="wt-btn pos" onclick="event.stopPropagation();adjWt(this,+2.5)">+2.5</button>
-            <button class="wt-btn pos" onclick="event.stopPropagation();adjWt(this,+5)">+5</button>
+          <div class="wt-drum-outer" onclick="event.stopPropagation()">
+            <div class="drum-fade-top"></div>
+            <div class="drum-center-band"></div>
+            <div class="drum-fade-bot"></div>
           </div>
           <div class="wt-history"></div>
         </div>
@@ -1651,7 +1660,14 @@ function buildPanel(day, isFirst) {
   return el;
 }
 
-function toggle(card) { card.classList.toggle('open'); }
+function toggle(card) {
+  card.classList.toggle('open');
+  if (card.classList.contains('open')) {
+    card.querySelectorAll('.wt-section').forEach(section => {
+      buildDrum(section, section.dataset.ex);
+    });
+  }
+}
 
 // ── DONE TRACKING ──────────────────────────────────────────────────────────
 
@@ -1802,40 +1818,80 @@ function setCardWt(card, wt) {
   if (wtEl) wtEl.textContent = wt;
 }
 
-function adjWt(btn, delta) {
-  const section = btn.closest('.wt-section');
-  const exName  = section.dataset.ex;
-  const valEl   = section.querySelector('.wt-val');
-  const unitEl  = section.querySelector('.wt-unit');
-  let current = parseFloat(valEl.textContent);
-  if (isNaN(current)) {
-    const m = (section.dataset.plan || '').match(/(\d+\.?\d*)/);
-    current = m ? parseFloat(m[1]) : 0;
-  }
-  const newWt = Math.max(0, Math.round((current + delta) * 10) / 10);
-  valEl.textContent = newWt;
-  unitEl.classList.remove('hidden');
-  saveWt(exName, newWt);
-  section.querySelector('.wt-history').innerHTML = historyHtml(exName);
-  setCardWt(section.closest('.ex-card'), newWt);
-}
+const DRUM_STEP = 0.5, DRUM_MAX = 200, DRUM_H = 48;
+const DRUM_CNT  = Math.round(DRUM_MAX / DRUM_STEP) + 1; // 401
 
-function initWeights(dayId) {
-  const panel = document.querySelector(`.day-panel[data-id="${dayId}"]`);
-  if (!panel) return;
-  panel.querySelectorAll('.wt-section').forEach(section => {
-    const exName = section.dataset.ex;
-    const wt = getWt(exName);
-    const valEl  = section.querySelector('.wt-val');
-    const unitEl = section.querySelector('.wt-unit');
-    if (wt !== null) {
-      valEl.textContent = wt;
-      unitEl.classList.remove('hidden');
+function buildDrum(section, exName) {
+  const outer = section.querySelector('.wt-drum-outer');
+  if (!outer || outer.querySelector('.wt-drum')) return;
+
+  const drum = document.createElement('div');
+  drum.className = 'wt-drum';
+
+  // top spacer — allows item 0 to center in the 144px viewport
+  const ts = document.createElement('div');
+  ts.style.cssText = 'height:48px;flex-shrink:0';
+  drum.appendChild(ts);
+
+  for (let i = 0; i < DRUM_CNT; i++) {
+    const wt = i * DRUM_STEP;
+    const div = document.createElement('div');
+    div.className = 'drum-item';
+    div.textContent = (wt % 1 === 0 ? wt.toFixed(0) : wt.toFixed(1)) + ' kg';
+    drum.appendChild(div);
+  }
+
+  // bottom spacer
+  const bs = document.createElement('div');
+  bs.style.cssText = 'height:48px;flex-shrink:0';
+  drum.appendChild(bs);
+
+  outer.appendChild(drum);
+
+  const saved = getWt(exName);
+  const startWt = saved !== null ? saved : (() => {
+    const m = (section.dataset.plan || '').match(/(\d+\.?\d*)/);
+    return m ? parseFloat(m[1]) : 0;
+  })();
+  const startIdx = Math.max(0, Math.min(Math.round(startWt / DRUM_STEP), DRUM_CNT - 1));
+
+  // Set position without animation (element just became visible)
+  drum._selIdx = -1;
+  requestAnimationFrame(() => {
+    drum.style.scrollBehavior = 'auto';
+    drum.scrollTop = startIdx * DRUM_H;
+    _drumSelect(drum, startIdx);
+    requestAnimationFrame(() => { drum.style.scrollBehavior = ''; });
+  });
+
+  if (saved !== null) {
+    section.querySelector('.wt-history').innerHTML = historyHtml(exName);
+    setCardWt(section.closest('.ex-card'), saved);
+  }
+
+  let scrollTimer;
+  drum.addEventListener('scroll', () => {
+    const idx = Math.round(drum.scrollTop / DRUM_H);
+    _drumSelect(drum, idx);
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(() => {
+      const wt = idx * DRUM_STEP;
+      saveWt(exName, wt);
       section.querySelector('.wt-history').innerHTML = historyHtml(exName);
       setCardWt(section.closest('.ex-card'), wt);
-    }
-  });
+    }, 150);
+  }, { passive: true });
 }
+
+function _drumSelect(drum, idx) {
+  if (drum._selIdx === idx) return;
+  // children layout: [spacer, item0, item1, ..., itemN, spacer]
+  if (drum._selIdx >= 0) drum.children[drum._selIdx + 1].classList.remove('selected');
+  if (idx >= 0 && idx < DRUM_CNT) drum.children[idx + 1].classList.add('selected');
+  drum._selIdx = idx;
+}
+
+function initWeights(dayId) { /* drums built lazily in toggle() */ }
 
 // ── PROGRESS PAGE ──────────────────────────────────────────────────────────
 
