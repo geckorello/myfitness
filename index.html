@@ -25,8 +25,8 @@
       --amber-dim:   rgba(240,160,48,0.10);
       --amber-mid:   rgba(240,160,48,0.22);
       --text:        #f0ede8;
-      --text-2:      #e8e4de;
-      --text-3:      #c8c4be;
+      --text-2:      #f0ede8;
+      --text-3:      #dddad4;
       --red:         #e05050;
       --cyan:        #38bcd4;
       --green:       #48c878;
@@ -434,7 +434,7 @@
     .day-dur {
       font-family: 'IBM Plex Mono', monospace;
       font-size: 13px;
-      color: var(--text-3);
+      color: var(--text);
       margin-left: auto;
     }
 
@@ -954,15 +954,15 @@
       font-size: 11px;
       letter-spacing: 1px;
       text-transform: uppercase;
-      color: var(--text-3);
+      color: var(--text-2);
       background: none;
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-2);
       border-radius: 4px;
       padding: 3px 9px;
       cursor: pointer;
       transition: all 0.18s;
     }
-    .day-reset:hover { color: var(--text-2); border-color: var(--border-2); }
+    .day-reset:hover { color: var(--text); border-color: rgba(255,255,255,0.3); }
 
     /* ── WEIGHT TRACKER ──────────────────────────── */
     .wt-section {
