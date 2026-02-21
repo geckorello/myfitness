@@ -667,15 +667,22 @@
       border-radius: var(--r);
       padding: 16px;
       margin-bottom: 16px;
+      cursor: pointer;
     }
     .zone-title {
       font-family: 'Bebas Neue', sans-serif;
       font-size: 18px;
       letter-spacing: 2px;
-      color: var(--text-2);
-      margin-bottom: 14px;
+      color: var(--text-3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0;
     }
-    .zones { display: flex; flex-direction: column; gap: 6px; }
+    .zone-arrow { font-size: 14px; transition: transform 0.2s; }
+    .zone-card.open .zone-arrow { transform: rotate(180deg); }
+    .zone-card .zones { display: none; margin-top: 14px; flex-direction: column; gap: 6px; }
+    .zone-card.open .zones { display: flex; }
     .z-row { display: flex; align-items: center; gap: 10px; }
     .z-bar {
       flex: 1;
@@ -1498,8 +1505,8 @@ const DAYS = [
 
 function zoneChart() {
   return `
-    <div class="zone-card">
-      <div class="zone-title">APPLE WATCH · HEART RATE ZONES</div>
+    <div class="zone-card" onclick="this.classList.toggle('open')">
+      <div class="zone-title">APPLE WATCH · HEART RATE ZONES <span class="zone-arrow">▾</span></div>
       <div class="zones">
         <div class="z-row z1"><div class="z-bar"><span>Z1 · Very easy</span></div><div class="z-bpm">below 130 bpm</div></div>
         <div class="z-row z2"><div class="z-bar"><span>Z2 · Aerobic base</span></div><div class="z-bpm">130–141 bpm</div></div>
@@ -1629,7 +1636,6 @@ function buildPanel(day, isFirst) {
     html += zoneChart();
 
   } else if (day.cardio) {
-    html += zoneChart();
     day.blocks.forEach(b => {
       html += `<div class="cardio-card"><div class="cardio-head">${b.title}</div>`;
       b.items.forEach(i => { html += `<div class="c-row"><div class="c-lbl">${i.l}</div><div class="c-val">${i.v}</div></div>`; });
@@ -1660,6 +1666,7 @@ function buildPanel(day, isFirst) {
         </div>`;
     });
     html += `</div>`;
+    html += zoneChart();
 
   } else {
     // Strength day
