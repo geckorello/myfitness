@@ -598,6 +598,16 @@
       white-space: nowrap;
     }
     .ms.amber { color: var(--amber); }
+    .equip-badge {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid;
+      white-space: nowrap;
+    }
 
     /* right controls */
     .ex-right {
@@ -1265,6 +1275,47 @@ const EX_MUSCLE = {
   'Bird Dog':                      'core',
 };
 
+const EX_EQUIP = {
+  'Barbell Bench Press':           'barbell',
+  'Overhead Press':                'barbell',
+  'Conventional Deadlift':         'barbell',
+  'Bent-over Barbell Row':         'barbell',
+  'Barbell Back Squat':            'barbell',
+  'Romanian Deadlift':             'barbell',
+  'Incline Dumbbell Press':        'dumbbell',
+  'Dumbbell Lateral Raise':        'dumbbell',
+  'Incline Dumbbell Bicep Curl':   'dumbbell',
+  'Dumbbell Shoulder Press':       'dumbbell',
+  'Single-arm Dumbbell Row':       'dumbbell',
+  'Hammer Curls':                  'dumbbell',
+  'Cable Lateral Raise':           'cable',
+  'Lean-away Cable Lateral Raise': 'cable',
+  'Tricep Pushdown':               'cable',
+  'Seated Cable Row':              'cable',
+  'Face Pulls':                    'cable',
+  'Cable Chest Fly / Pec Deck':    'cable',
+  'Overhead Tricep Extension':     'cable',
+  'Pallof Press':                  'cable',
+  'Lat Pulldown':                  'machine',
+  'Leg Press':                     'machine',
+  'Leg Curl':                      'machine',
+  'Calf Raises':                   'machine',
+  'Reverse Pec Deck':              'machine',
+  'Pull-ups':                      'bar',
+  'Ab Wheel Rollout':              'floor',
+  'Dead Bugs':                     'floor',
+  'Plank':                         'floor',
+  'Bird Dog':                      'floor',
+};
+const EQUIP_BADGE = {
+  barbell:  { label:'BARBELL',  color:'#f0a030', bg:'rgba(240,160,48,0.12)'  },
+  dumbbell: { label:'DUMBBELL', color:'#e07840', bg:'rgba(224,120,64,0.12)'  },
+  cable:    { label:'CABLE',    color:'#38bcd4', bg:'rgba(56,188,212,0.12)'  },
+  machine:  { label:'MACHINE',  color:'#48c878', bg:'rgba(72,200,120,0.12)'  },
+  bar:      { label:'BAR',      color:'#b870e8', bg:'rgba(184,112,232,0.12)' },
+  floor:    { label:'FLOOR',    color:'#908c88', bg:'rgba(144,140,136,0.10)' },
+};
+
 // Images for exercise thumbnails.
 // Values starting with "http" are used as direct image URLs.
 // All other values are treated as YouTube video IDs → img.youtube.com/vi/ID/hqdefault.jpg
@@ -1431,8 +1482,8 @@ const DAYS = [
         { l:'Equipment', v:'Stationary bike or rowing machine' },
         { l:'Warm-up',   v:'5 min · Zone 1 · below 130 bpm' },
         { l:'Intervals', v:'10 × (30 sec all-out / 90 sec easy)' },
-        { l:'Work HR',   v:'Zone 4–5 · 152–170 bpm' },
-        { l:'Rest HR',   v:'Zone 2 · 130–141 bpm' },
+        { l:'Work HR',   v:'Zone 4–5 · 152–170 bpm · 5 min total' },
+        { l:'Rest HR',   v:'Zone 2 · 130–141 bpm · 15 min total' },
         { l:'Total',     v:'~20 min' },
       ]},
       { title:'STEADY STATE', items:[
@@ -1524,6 +1575,11 @@ function exCard(ex, dayId) {
   const imgTag = imgUrl
     ? `<img src="${imgUrl}" alt="${ex.name}" loading="lazy" onerror="this.style.display='none'">`
     : '';
+  const eq = EX_EQUIP[ex.name];
+  const eb = eq ? EQUIP_BADGE[eq] : null;
+  const equipTag = eb
+    ? `<span class="equip-badge" style="color:${eb.color};background:${eb.bg};border-color:${eb.color}40">${eb.label}</span>`
+    : '';
 
   return `
     <div class="ex-card${ex.priority ? ' priority' : ''}" data-ex="${ex.name}" data-day="${dayId}" onclick="toggle(this)">
@@ -1545,6 +1601,7 @@ function exCard(ex, dayId) {
             <span class="ms">${ex.sets}×${ex.reps}</span>
             <span class="ms amber ex-plan-wt">${ex.kg}</span>
             <span class="ms">${ex.rest} between sets</span>
+            ${equipTag}
           </div>
         </div>
         <div class="ex-right">
