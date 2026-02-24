@@ -127,9 +127,9 @@
     .tab.active .tab-day { color: rgba(240,160,48,0.55); }
     .tab.today .tab-day { color: var(--green) !important; }
     .tab.today .tab-name { color: var(--green); }
-    .tab.today { background: rgba(72, 200, 120, 0.13); border-bottom: 2px solid var(--green); }
+    .tab.today { background: rgba(72, 200, 120, 0.18); border-bottom: 3px solid var(--green); }
     .tab.today.active .tab-name { color: var(--amber); }
-    .tab.today.active { background: rgba(72, 200, 120, 0.06); border-bottom-color: var(--amber); }
+    .tab.today.active { background: rgba(72, 200, 120, 0.10); border-bottom-color: var(--amber); }
 
     /* ── TODAY BUTTON ────────────────────────────── */
     .today-row { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
@@ -1112,6 +1112,8 @@
         border-radius: 0; min-width: 0;
       }
       .tab.active { border-top-color: var(--amber); border-bottom-color: transparent; }
+      .tab.today { border-top: 3px solid var(--green); border-bottom: none; }
+      .tab.today.active { border-top-color: var(--amber); }
       .tab-day  { font-size: 10px; letter-spacing: 1px; }
       .tab-name { font-size: 15px; letter-spacing: 1px; }
 
