@@ -126,6 +126,10 @@
     .tab.active .tab-name { color: var(--amber); }
     .tab.active .tab-day { color: rgba(240,160,48,0.55); }
     .tab.today .tab-day { color: var(--green) !important; }
+    .tab.today .tab-name { color: var(--green); }
+    .tab.today { background: rgba(72, 200, 120, 0.13); border-bottom: 2px solid var(--green); }
+    .tab.today.active .tab-name { color: var(--amber); }
+    .tab.today.active { background: rgba(72, 200, 120, 0.06); border-bottom-color: var(--amber); }
 
     /* ── TODAY BUTTON ────────────────────────────── */
     .today-row { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
@@ -1980,7 +1984,13 @@ function _drumSelect(drum, idx) {
   drum._selIdx = idx;
 }
 
-function initWeights(dayId) { /* drums built lazily in toggle() */ }
+function initWeights(dayId) {
+  document.querySelectorAll(`.day-panel[data-id="${dayId}"] .ex-card`).forEach(card => {
+    const exName = card.dataset.ex;
+    const wt = getWt(exName);
+    if (wt !== null) setCardWt(card, wt);
+  });
+}
 
 // ── PROGRESS PAGE ──────────────────────────────────────────────────────────
 
