@@ -618,8 +618,9 @@
     /* right controls */
     .ex-right {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
       padding: 0 10px;
       flex-shrink: 0;
     }
@@ -674,6 +675,69 @@
       border-radius: 4px;
       padding: 2px 7px;
       margin-top: 8px;
+    }
+    .rpe-badge {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--amber);
+      background: rgba(240,160,48,0.14);
+      border: 1px solid rgba(240,160,48,0.35);
+      border-radius: 4px;
+      padding: 3px 8px;
+      white-space: nowrap;
+    }
+    .wt-save-btn {
+      display: none;
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--green);
+      background: rgba(72,200,120,0.1);
+      border: 1px solid rgba(72,200,120,0.3);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .wt-save-btn:active { background: rgba(72,200,120,0.25); }
+    .wt-save-btn.saved {
+      color: #0c0c0e;
+      background: var(--green);
+      border-color: var(--green);
+    }
+    .equip-toggle {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.18s;
+      background: none;
+      border: 1px solid var(--border-2);
+      color: var(--text-2);
+    }
+    .equip-toggle:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
+    .equip-toggle.active {
+      background: rgba(240,160,48,0.12);
+      border-color: rgba(240,160,48,0.3);
+      color: var(--amber);
+    }
+    .equip-section-header {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 6px;
+      margin: 20px 0 10px;
+      display: inline-block;
     }
 
     /* ── ZONE CHART ──────────────────────────────── */
@@ -1154,6 +1218,9 @@
       .ex-note { font-size: 15px; line-height: 1.7; }
       .ex-note-wrap .guide-btn { display: inline-flex; font-size: 13px; padding: 8px 14px; }
       .rpe-note { font-size: 13px; padding: 4px 10px; }
+      .rpe-badge { font-size: 13px; }
+      .equip-toggle { font-size: 11px; padding: 5px 12px; }
+      .equip-section-header { font-size: 18px; margin: 16px 0 8px; }
 
       /* ── Weight tracker ── */
       .wt-lbl  { font-size: 12px; }
@@ -1588,6 +1655,9 @@ function exCard(ex, dayId) {
   const equipTag = eb
     ? `<span class="equip-badge" style="color:${eb.color};background:${eb.bg};border-color:${eb.color}40">${eb.label}</span>`
     : '';
+  const rpeTag = ex.rpe
+    ? `<span class="rpe-badge">${ex.rpe}</span>`
+    : '';
 
   return `
     <div class="ex-card${ex.priority ? ' priority' : ''}" data-ex="${ex.name}" data-day="${dayId}" onclick="toggle(this)">
@@ -1609,10 +1679,11 @@ function exCard(ex, dayId) {
             <span class="ms">${ex.sets}×${ex.reps}</span>
             <span class="ms amber ex-plan-wt">${ex.kg}</span>
             <span class="ms">${ex.rest} between sets</span>
-            ${equipTag}
+            ${rpeTag}
           </div>
         </div>
         <div class="ex-right">
+          ${equipTag}
           ${ex.guide ? `<a href="${ex.guide}" target="_blank" onclick="event.stopPropagation()" class="guide-btn">SEE MACHINE ↗</a>` : ''}
           <div class="ex-arrow">▾</div>
         </div>
@@ -1628,6 +1699,7 @@ function exCard(ex, dayId) {
             <div class="drum-center-band"></div>
             <div class="drum-fade-bot"></div>
           </div>
+          <button class="wt-save-btn" onclick="event.stopPropagation();saveDrumWeight(this)">SAVE WEIGHT</button>
           <div class="wt-history"></div>
         </div>
         <div class="ex-note-wrap">
@@ -1663,7 +1735,7 @@ function buildPanel(day, isFirst) {
         <span class="pill pill-${day.type}">${typeLabels[day.type]}</span>
         <span class="day-focus">${day.focus}</span>
         ${day.dur ? `<span class="day-dur">${day.dur}</span>` : ''}
-      ${day.sections ? `<button class="day-reset" onclick="resetDay('${day.id}')">Reset workout</button>` : ''}
+      ${day.sections ? `<button class="equip-toggle" data-day="${day.id}" onclick="toggleEquipGroup('${day.id}')">By equipment</button><button class="day-reset" onclick="resetDay('${day.id}')">Reset workout</button>` : ''}
       </div>
       <div class="today-row">
         <button class="today-btn" data-day="${day.id}" onclick="setToday('${day.id}')">Train this today</button>
@@ -1738,6 +1810,7 @@ function buildPanel(day, isFirst) {
     if (day.warmup) {
       html += `<div class="warmup"><div class="warmup-lbl">Warm-up · 5 min</div><div class="warmup-text">${day.warmup}</div></div>`;
     }
+    html += `<div class="sections-wrap" data-day="${day.id}">`;
     day.sections.forEach(sec => {
       if (sec.finisher) {
         html += `<div class="finisher-div"><div class="finisher-line"></div><div class="finisher-lbl">Shoulder Finisher · 8 min</div><div class="finisher-line"></div></div>`;
@@ -1748,6 +1821,7 @@ function buildPanel(day, isFirst) {
       sec.exercises.forEach(ex => { html += exCard(ex, day.id); });
       html += `</div>`;
     });
+    html += `</div>`;
     html += progCard();
   }
 
@@ -1775,6 +1849,13 @@ function toggleDone(btn) {
   isDone ? localStorage.setItem(key, '1') : localStorage.removeItem(key);
   // Log weight to history when marking done
   if (isDone) {
+    // Auto-close detail panel
+    setTimeout(() => card.classList.remove('open'), 400);
+    // Start duration timer on first exercise done
+    const startKey = 'duration-start:' + dayId;
+    if (!localStorage.getItem(startKey)) {
+      localStorage.setItem(startKey, Date.now().toString());
+    }
     const wt = getWt(exName);
     if (wt !== null) {
       logWtHistory(exName, wt);
@@ -1802,6 +1883,14 @@ function showToast(msg) {
 }
 
 function advanceToNextDay(currentDayId) {
+  // Log duration if start time exists
+  const startKey = 'duration-start:' + currentDayId;
+  const startTime = localStorage.getItem(startKey);
+  if (startTime) {
+    const minutes = Math.round((Date.now() - parseInt(startTime)) / 60000);
+    if (minutes > 0 && minutes < 300) logDuration(currentDayId, minutes);
+    localStorage.removeItem(startKey);
+  }
   const idx = DAYS.findIndex(d => d.id === currentDayId);
   const next = DAYS[(idx + 1) % DAYS.length];
   showToast('Day complete \u2713  \u2192  ' + next.short + ' · ' + next.name);
@@ -1820,6 +1909,7 @@ function resetDay(dayId) {
     card.classList.remove('done');
     localStorage.removeItem(`done:${dayId}:${card.dataset.ex}`);
   });
+  localStorage.removeItem('duration-start:' + dayId);
 }
 
 // ── TODAY TRACKING ──────────────────────────────────────────────────────────
@@ -1848,6 +1938,40 @@ function setToday(dayId) {
   resetDay(dayId);
   updateTodayMarkers(dayId);
   setDay(dayId);
+}
+
+// ── DURATION TRACKING ──────────────────────────────────────────────────────
+
+function getDurations(dayId) {
+  try { return JSON.parse(localStorage.getItem('duration:' + dayId) || '[]'); }
+  catch { return []; }
+}
+
+function logDuration(dayId, minutes) {
+  const today = new Date().toISOString().slice(0, 10);
+  const durations = getDurations(dayId);
+  if (durations.length > 0 && durations[durations.length - 1].date === today) {
+    durations[durations.length - 1].minutes = minutes;
+  } else {
+    durations.push({ date: today, minutes });
+  }
+  localStorage.setItem('duration:' + dayId, JSON.stringify(durations));
+}
+
+function avgDuration(dayId) {
+  const durations = getDurations(dayId);
+  if (durations.length === 0) return null;
+  const avg = Math.round(durations.reduce((s, d) => s + d.minutes, 0) / durations.length);
+  return { avg, count: durations.length };
+}
+
+function updateDayDuration(dayId) {
+  const el = document.querySelector(`.day-panel[data-id="${dayId}"] .day-dur`);
+  if (!el) return;
+  const info = avgDuration(dayId);
+  if (info) {
+    el.textContent = `~${info.avg} min (avg ${info.count} session${info.count > 1 ? 's' : ''})`;
+  }
 }
 
 // ── WEIGHT TRACKING ────────────────────────────────────────────────────────
@@ -1968,6 +2092,12 @@ function buildDrum(section, exName) {
   drum.addEventListener('scroll', () => {
     const idx = Math.round(drum.scrollTop / DRUM_H);
     _drumSelect(drum, idx);
+    // Show save button on scroll
+    const saveBtn = section.querySelector('.wt-save-btn');
+    if (saveBtn && !saveBtn.classList.contains('saved')) {
+      saveBtn.style.display = 'block';
+      saveBtn.textContent = 'SAVE WEIGHT';
+    }
     clearTimeout(scrollTimer);
     scrollTimer = setTimeout(() => {
       const wt = idx * DRUM_STEP;
@@ -1986,12 +2116,93 @@ function _drumSelect(drum, idx) {
   drum._selIdx = idx;
 }
 
+function saveDrumWeight(btn) {
+  const section = btn.closest('.wt-section');
+  const exName = section.dataset.ex;
+  const drum = section.querySelector('.wt-drum');
+  const idx = Math.round(drum.scrollTop / DRUM_H);
+  const wt = idx * DRUM_STEP;
+  saveWt(exName, wt);
+  section.querySelector('.wt-history').innerHTML = historyHtml(exName);
+  setCardWt(section.closest('.ex-card'), wt);
+  btn.textContent = 'SAVED \u2713';
+  btn.classList.add('saved');
+  setTimeout(() => {
+    btn.style.display = 'none';
+    btn.textContent = 'SAVE WEIGHT';
+    btn.classList.remove('saved');
+  }, 1200);
+}
+
 function initWeights(dayId) {
   document.querySelectorAll(`.day-panel[data-id="${dayId}"] .ex-card`).forEach(card => {
     const exName = card.dataset.ex;
     const wt = getWt(exName);
     if (wt !== null) setCardWt(card, wt);
   });
+}
+
+// ── EQUIPMENT GROUPING ─────────────────────────────────────────────────────
+
+const EQUIP_ORDER = ['barbell', 'dumbbell', 'cable', 'machine', 'bar', 'floor'];
+
+function buildEquipView(dayId) {
+  const panel = document.querySelector(`.day-panel[data-id="${dayId}"]`);
+  const wrap = panel.querySelector('.sections-wrap');
+  const day = DAYS.find(d => d.id === dayId);
+  const allExercises = [];
+  day.sections.forEach(sec => { sec.exercises.forEach(ex => allExercises.push(ex)); });
+  const groups = {};
+  allExercises.forEach(ex => {
+    const eq = EX_EQUIP[ex.name] || 'other';
+    if (!groups[eq]) groups[eq] = [];
+    groups[eq].push(ex);
+  });
+  let html = '';
+  EQUIP_ORDER.forEach(eq => {
+    if (!groups[eq]) return;
+    const badge = EQUIP_BADGE[eq];
+    html += `<div class="equip-section-header" style="color:${badge.color};background:${badge.bg};border:1px solid ${badge.color}40">${badge.label} STATION</div>`;
+    html += `<div class="ex-list">`;
+    groups[eq].forEach(ex => { html += exCard(ex, dayId); });
+    html += `</div>`;
+  });
+  if (groups['other']) {
+    html += `<div class="sec-label">OTHER</div><div class="ex-list">`;
+    groups['other'].forEach(ex => { html += exCard(ex, dayId); });
+    html += `</div>`;
+  }
+  wrap.innerHTML = html;
+  loadDone(dayId);
+  initWeights(dayId);
+}
+
+function buildOriginalView(dayId) {
+  const panel = document.querySelector(`.day-panel[data-id="${dayId}"]`);
+  const wrap = panel.querySelector('.sections-wrap');
+  const day = DAYS.find(d => d.id === dayId);
+  let html = '';
+  day.sections.forEach(sec => {
+    if (sec.finisher) {
+      html += `<div class="finisher-div"><div class="finisher-line"></div><div class="finisher-lbl">Shoulder Finisher · 8 min</div><div class="finisher-line"></div></div>`;
+    } else {
+      html += `<div class="sec-label">${sec.label}</div>`;
+    }
+    html += `<div class="ex-list">`;
+    sec.exercises.forEach(ex => { html += exCard(ex, dayId); });
+    html += `</div>`;
+  });
+  wrap.innerHTML = html;
+  loadDone(dayId);
+  initWeights(dayId);
+}
+
+function toggleEquipGroup(dayId) {
+  const btn = document.querySelector(`.equip-toggle[data-day="${dayId}"]`);
+  const isActive = btn.classList.toggle('active');
+  localStorage.setItem('equip-group:' + dayId, isActive ? '1' : '0');
+  if (isActive) buildEquipView(dayId);
+  else buildOriginalView(dayId);
 }
 
 // ── PROGRESS PAGE ──────────────────────────────────────────────────────────
@@ -2328,6 +2539,18 @@ progPanel.className = 'day-panel';
 progPanel.id = 'panel-progress';
 progPanel.dataset.id = 'progress';
 main.appendChild(progPanel);
+
+// Equipment grouping ON by default (stored preference can override)
+DAYS.forEach(day => {
+  if (!day.sections) return;
+  if (localStorage.getItem('equip-group:' + day.id) !== '0') {
+    const btn = document.querySelector(`.equip-toggle[data-day="${day.id}"]`);
+    if (btn) { btn.classList.add('active'); buildEquipView(day.id); }
+  }
+});
+
+// Update duration displays
+DAYS.forEach(day => { if (day.dur) updateDayDuration(day.id); });
 
 // Restore "today" from last session; otherwise default to first day
 const savedToday = localStorage.getItem('today');
