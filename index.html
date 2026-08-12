@@ -720,7 +720,7 @@
       white-space: nowrap;
     }
     .wt-save-btn {
-      display: none;
+      display: block;
       width: 100%;
       padding: 10px;
       margin-top: 6px;
@@ -1873,6 +1873,10 @@ function toggle(card) {
   if (card.classList.contains('open')) {
     card.querySelectorAll('.wt-section').forEach(section => {
       buildDrum(section, section.dataset.ex);
+      // A spin that was never saved is discarded — the drum always opens on
+      // the stored weight. Done on open, not on close: a collapsed .ex-detail
+      // is display:none, and scrollTop cannot be set on a hidden element.
+      resetDrum(section);
     });
   }
 }
@@ -2143,24 +2147,30 @@ function buildDrum(section, exName) {
     setCardWt(section.closest('.ex-card'), saved);
   }
 
-  let scrollTimer;
+  // Scrolling the drum only moves the selection — nothing is persisted until
+  // SAVE WEIGHT is pressed. See resetDrum() for what happens if it is not.
   drum.addEventListener('scroll', () => {
-    const idx = Math.round(drum.scrollTop / DRUM_H);
-    _drumSelect(drum, idx);
-    // Show save button on scroll
-    const saveBtn = section.querySelector('.wt-save-btn');
-    if (saveBtn && !saveBtn.classList.contains('saved')) {
-      saveBtn.style.display = 'block';
-      saveBtn.textContent = 'SAVE WEIGHT';
-    }
-    clearTimeout(scrollTimer);
-    scrollTimer = setTimeout(() => {
-      const wt = idx * DRUM_STEP;
-      saveWt(exName, wt);
-      section.querySelector('.wt-history').innerHTML = historyHtml(exName);
-      setCardWt(section.closest('.ex-card'), wt);
-    }, 150);
+    _drumSelect(drum, Math.round(drum.scrollTop / DRUM_H));
   }, { passive: true });
+}
+
+// Spins the drum back to the stored weight and hides the save button.
+// Called every time a card is opened, so an unsaved spin visibly reverts
+// instead of sitting there looking like it was kept.
+function resetDrum(section) {
+  const drum = section.querySelector('.wt-drum');
+  if (!drum) return;
+  const exName = section.dataset.ex;
+  const saved = getWt(exName);
+  const wt = saved !== null ? saved : (() => {
+    const m = (section.dataset.plan || '').match(/(\d+\.?\d*)/);
+    return m ? parseFloat(m[1]) : 0;
+  })();
+  const idx = Math.max(0, Math.min(Math.round(wt / DRUM_STEP), DRUM_CNT - 1));
+  drum.style.scrollBehavior = 'auto';
+  drum.scrollTop = idx * DRUM_H;
+  _drumSelect(drum, idx);
+  requestAnimationFrame(() => { drum.style.scrollBehavior = ''; });
 }
 
 function _drumSelect(drum, idx) {
@@ -2183,7 +2193,6 @@ function saveDrumWeight(btn) {
   btn.textContent = 'SAVED \u2713';
   btn.classList.add('saved');
   setTimeout(() => {
-    btn.style.display = 'none';
     btn.textContent = 'SAVE WEIGHT';
     btn.classList.remove('saved');
   }, 1200);
