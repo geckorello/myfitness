@@ -359,14 +359,6 @@
       color: var(--text-3);
       margin-top: 3px;
     }
-    .prog-suggestion {
-      padding: 9px 16px;
-      font-size: 14px;
-      font-family: 'IBM Plex Mono', monospace;
-      color: var(--green);
-      background: rgba(72,200,120,0.07);
-      border-top: 1px solid rgba(72,200,120,0.14);
-    }
     .prog-empty {
       text-align: center;
       padding: 60px 20px;
@@ -604,6 +596,18 @@
       white-space: nowrap;
     }
     .ms.amber { color: var(--amber); }
+    /* "next session" weight suggestion — shown on the collapsed exercise row */
+    .ex-suggest { display: none; }
+    .ex-suggest.on {
+      display: block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 16px;
+      color: var(--green);
+      background: rgba(72,200,120,0.08);
+      border-top: 1px solid rgba(72,200,120,0.2);
+      padding: 9px 14px;
+      text-align: center;
+    }
     .equip-badge {
       font-family: 'IBM Plex Mono', monospace;
       font-size: 13px;
@@ -1210,6 +1214,7 @@
       .ex-name { font-size: 17px; }
       .ex-my-wt { font-size: 22px; }
       .ms { font-size: 17px; }
+      .ex-suggest.on { font-size: 15px; padding: 8px 10px; }
       .ex-right { padding: 0 8px; }
       .guide-btn { display: none; }
 
@@ -1272,7 +1277,6 @@
       .prog-name { font-size: 16px; }
       .prog-stat-val { font-size: 18px; }
       .prog-stat-lbl { font-size: 9px; }
-      .prog-suggestion { font-size: 13px; }
       .combo-svg { height: 140px; }
       .full-chart-svg { height: 140px; }
       .legend-name { font-size: 12px; }
@@ -1339,6 +1343,7 @@ const EX_MUSCLE = {
   'Pull-ups':                      'back',
   'Dumbbell Shoulder Press':       'shoulders',
   'Lean-away Cable Lateral Raise': 'shoulders',
+  'Segmented Lateral Raise':       'shoulders',
   'Reverse Pec Deck':              'shoulders',
   'Single-arm Dumbbell Row':       'back',
   'Hammer Curls':                  'biceps',
@@ -1359,6 +1364,7 @@ const EX_EQUIP = {
   'Romanian Deadlift':             'barbell',
   'Incline Dumbbell Press':        'dumbbell',
   'Dumbbell Lateral Raise':        'dumbbell',
+  'Segmented Lateral Raise':       'dumbbell',
   'Incline Dumbbell Bicep Curl':   'dumbbell',
   'Dumbbell Shoulder Press':       'dumbbell',
   'Single-arm Dumbbell Row':       'dumbbell',
@@ -1411,6 +1417,7 @@ const THUMB = {
   'Leg Curl':                      '3BWiLFc8Dbg',
   'Calf Raises':                   'RBslMmWqzzE',
   'Face Pulls':                    'VdnHXklRQW8',
+  'Segmented Lateral Raise':       'to7y50jfa5M',
   // Wikimedia Commons — confirmed photo URLs (no SVGs)
   'Conventional Deadlift':         'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Deadlift-phase_1.JPG/500px-Deadlift-phase_1.JPG',
   'Overhead Press':                'https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Seated-military-shoulder-press-1.png/500px-Seated-military-shoulder-press-1.png',
@@ -1448,24 +1455,24 @@ const DAYS = [
     warmup: 'Arm circles ×20 · Band pull-aparts ×15 · 2 warm-up sets on bench at 40% and 60% of working weight',
     sections: [
       { label: 'Main Lifts', exercises: [
-        { name:'Barbell Bench Press',  sets:4, reps:'5',  rest:'3 min',  kg:'60–75 kg',   lbs:'132–165 lbs',  rpe:'RPE 9', priority:true,
+        { name:'Barbell Bench Press',  sets:2, reps:'6–8',  rest:'3 min',  kg:'60–75 kg',   lbs:'132–165 lbs',  rpe:'RPE 9', priority:true,
           note:'Bar touches chest, press explosively. Work up to RPE 9 on set 4.',
           guide:'https://www.youtube.com/results?search_query=barbell+bench+press+proper+form' },
-        { name:'Cable Lateral Raise', sets:4, reps:'15', rest:'60 sec', kg:'7.5–12.5 kg', lbs:'16–27 lbs/side', priority:true,
+        { name:'Cable Lateral Raise', sets:2, reps:'6–8', rest:'60 sec', kg:'7.5–12.5 kg', lbs:'16–27 lbs/side', priority:true,
           note:'<strong>Slow up (2 sec), slow down (3 sec). No swinging.</strong> This is how width gets built. Pulley set to lowest position.',
           guide:'https://exrx.net/WeightExercises/DeltoidLateral/CBLateralRaise' },
-        { name:'Overhead Press',       sets:4, reps:'5',  rest:'3 min',  kg:'40–55 kg',   lbs:'88–121 lbs',   rpe:'RPE 9',
+        { name:'Overhead Press',       sets:2, reps:'6–8',  rest:'3 min',  kg:'40–55 kg',   lbs:'88–121 lbs',   rpe:'RPE 9',
           note:'Barbell in squat rack or Smith machine. Full lockout overhead, brace core before every rep.',
           guide:'https://exrx.net/WeightExercises/DeltoidAnterior/BBMilitaryPress' },
       ]},
       { label: 'Accessories', exercises: [
-        { name:'Incline Dumbbell Press',  sets:3, reps:'10', rest:'90 sec', kg:'22–28 kg', lbs:'48–62 lbs/hand',
+        { name:'Incline Dumbbell Press',  sets:2, reps:'6–8', rest:'90 sec', kg:'22–28 kg', lbs:'48–62 lbs/hand',
           note:'Bench at 30–45 degrees. 2-second controlled lowering on every rep.',
           guide:'https://www.youtube.com/results?search_query=incline+dumbbell+press+proper+form' },
-        { name:'Dumbbell Lateral Raise',  sets:3, reps:'12', rest:'60 sec', kg:'8–12 kg',  lbs:'18–26 lbs/hand',
+        { name:'Dumbbell Lateral Raise',  sets:2, reps:'6–8', rest:'60 sec', kg:'8–12 kg',  lbs:'18–26 lbs/hand',
           note:'Slight forward lean, lead with elbows not wrists. Drop the weight if you have to swing.',
           guide:'https://www.youtube.com/results?search_query=dumbbell+lateral+raise+proper+form' },
-        { name:'Tricep Pushdown',         sets:3, reps:'12', rest:'60 sec', kg:'20–30 kg', lbs:'44–66 lbs',
+        { name:'Tricep Pushdown',         sets:2, reps:'6–8', rest:'60 sec', kg:'20–30 kg', lbs:'44–66 lbs',
           note:'High cable pulley, straight bar or rope. Elbows pinned at sides, squeeze at the bottom.',
           guide:'https://www.youtube.com/results?search_query=cable+tricep+pushdown+proper+form' },
       ]},
@@ -1478,23 +1485,26 @@ const DAYS = [
     warmup: 'Shoulder rotations ×20 · Cat-cow ×10 · 2 light sets lat pulldown at 40% of working weight',
     sections: [
       { label: 'Main Lifts', exercises: [
-        { name:'Conventional Deadlift',   sets:4, reps:'5',  rest:'4 min',  kg:'90–110 kg', lbs:'198–243 lbs', rpe:'RPE 9', priority:true,
+        { name:'Conventional Deadlift',   sets:2, reps:'6–8',  rest:'4 min',  kg:'42.5–50 kg', lbs:'94–110 lbs', rpe:'RPE 9', priority:true,
           note:'<strong>Hinge — not a squat.</strong> Bar stays over mid-foot throughout. Best hormonal stimulus of the week.',
           guide:'https://exrx.net/WeightExercises/ErectorSpinae/BBDeadlift' },
-        { name:'Bent-over Barbell Row',   sets:4, reps:'5',  rest:'3 min',  kg:'60–75 kg',  lbs:'132–165 lbs', rpe:'RPE 9', priority:true,
+        { name:'Bent-over Barbell Row',   sets:2, reps:'6–8',  rest:'3 min',  kg:'47.5–55 kg', lbs:'105–121 lbs', rpe:'RPE 9', priority:true,
           note:'Torso nearly parallel to floor. Pull bar to lower ribs — not to chest.',
           guide:'https://www.youtube.com/results?search_query=bent+over+barbell+row+proper+form' },
       ]},
       { label: 'Accessories', exercises: [
-        { name:'Lat Pulldown',            sets:3, reps:'10', rest:'90 sec', kg:'55–70 kg', lbs:'121–154 lbs',
+        { name:'Lat Pulldown',            sets:2, reps:'6–8', rest:'90 sec', kg:'55–70 kg', lbs:'121–154 lbs',
           note:'Wide grip bar. Full stretch at top. Pull to upper chest — never behind neck.',
           guide:'https://www.youtube.com/results?search_query=lat+pulldown+proper+form' },
-        { name:'Seated Cable Row',        sets:3, reps:'12', rest:'90 sec', kg:'50–65 kg', lbs:'110–143 lbs',
+        { name:'Seated Cable Row',        sets:2, reps:'6–8', rest:'90 sec', kg:'75–85 kg', lbs:'165–187 lbs',
           note:'Low pulley, V-bar or wide bar. Hold the squeeze at full contraction for 1 second.',
           guide:'https://www.youtube.com/results?search_query=seated+cable+row+proper+form' },
-        { name:'Incline Dumbbell Bicep Curl', sets:3, reps:'12', rest:'60 sec', kg:'12–16 kg', lbs:'26–35 lbs/hand',
+        { name:'Incline Dumbbell Bicep Curl', sets:2, reps:'6–8', rest:'60 sec', kg:'15–17.5 kg', lbs:'33–39 lbs/hand',
           note:'Bench at 60 degrees. Arms hang behind the body at the bottom — this stretches the bicep more than a standing curl.',
           guide:'https://www.youtube.com/results?search_query=incline+dumbbell+bicep+curl+proper+form' },
+        { name:'Segmented Lateral Raise', sets:2, reps:'6–8', rest:'60 sec', kg:'8–12 kg', lbs:'18–26 lbs/hand',
+          note:'Ryan Humiston variant. <strong>Not straight out to the side</strong> — the raise path follows the segments of the delt origin: start with the dumbbells in front of the thighs and raise diagonally, slightly forward of the body, thumbs turned down at the top. Stop at shoulder height. Lighter than a normal lateral raise feels — the angle is what does the work.',
+          guide:'https://youtu.be/to7y50jfa5M' },
       ]},
     ]
   },
@@ -1519,29 +1529,29 @@ const DAYS = [
     warmup: 'Leg swings ×20 each side · 10 bodyweight squats · 10 goblet squats (light KB) · 2 warm-up sets on squat at 40% and 60%',
     sections: [
       { label: 'Main Lifts', exercises: [
-        { name:'Barbell Back Squat', sets:4, reps:'5',  rest:'4 min',  kg:'70–90 kg',   lbs:'154–198 lbs',  rpe:'RPE 9', priority:true,
+        { name:'Barbell Back Squat', sets:2, reps:'6–8',  rest:'4 min',  kg:'70–90 kg',   lbs:'154–198 lbs',  rpe:'RPE 9', priority:true,
           note:'Most important movement in the plan — drives full-body strength. Squat rack, barbell at shoulder height.',
           guide:'https://www.youtube.com/results?search_query=barbell+back+squat+proper+form' },
-        { name:'Romanian Deadlift', sets:4, reps:'6',  rest:'3 min',  kg:'60–80 kg',   lbs:'132–176 lbs',
+        { name:'Romanian Deadlift', sets:2, reps:'6–8',  rest:'3 min',  kg:'60–80 kg',   lbs:'132–176 lbs',
           note:'Push hips back until you feel the hamstring pull. <strong>Lower back stays neutral</strong> — it never rounds.',
           guide:'https://www.youtube.com/results?search_query=romanian+deadlift+proper+form' },
       ]},
       { label: 'Machine Work', exercises: [
-        { name:'Leg Press',  sets:3, reps:'10', rest:'90 sec', kg:'90–130 kg', lbs:'198–286 lbs',
+        { name:'Leg Press',  sets:2, reps:'6–8', rest:'90 sec', kg:'90–130 kg', lbs:'198–286 lbs',
           note:'Large reclined sled machine. Feet shoulder-width. Full range — stop just before knees lock at top.',
           guide:'https://www.youtube.com/results?search_query=leg+press+machine+proper+form' },
-        { name:'Leg Curl',   sets:3, reps:'12', rest:'90 sec', kg:'35–50 kg',  lbs:'77–110 lbs',
+        { name:'Leg Curl',   sets:2, reps:'6–8', rest:'90 sec', kg:'35–50 kg',  lbs:'77–110 lbs',
           note:'Seated or lying machine, either works. <strong>3-second lowering on every rep</strong> — this is where the growth happens.',
           guide:'https://www.youtube.com/results?search_query=leg+curl+machine+proper+form' },
-        { name:'Calf Raises', sets:4, reps:'15', rest:'60 sec', kg:'50–70 kg',  lbs:'110–154 lbs',
+        { name:'Calf Raises', sets:2, reps:'6–8', rest:'60 sec', kg:'50–70 kg',  lbs:'110–154 lbs',
           note:'Full stretch at bottom (heel below platform level), 1-second pause at top.',
           guide:'https://www.youtube.com/results?search_query=standing+calf+raises+proper+form' },
       ]},
       { label: 'Shoulder Finisher', finisher:true, exercises: [
-        { name:'Cable Lateral Raise', sets:3, reps:'15', rest:'60 sec', kg:'7.5–12.5 kg', lbs:'16–27 lbs', priority:true,
+        { name:'Cable Lateral Raise', sets:2, reps:'6–8', rest:'60 sec', kg:'7.5–12.5 kg', lbs:'16–27 lbs', priority:true,
           note:'Legs are done — upper body is completely fresh. Third lateral delt stimulus of the week. Low cable pulley.',
           guide:'https://exrx.net/WeightExercises/DeltoidLateral/CBLateralRaise' },
-        { name:'Face Pulls',          sets:3, reps:'15', rest:'60 sec', kg:'15–22.5 kg',  lbs:'33–50 lbs',  priority:true,
+        { name:'Face Pulls',          sets:2, reps:'6–8', rest:'60 sec', kg:'15–22.5 kg',  lbs:'33–50 lbs',  priority:true,
           note:'Cable machine, rope attachment, pulley at face height. Pull rope to forehead, elbows flare wide. Key for rear delt and shoulder health.',
           guide:'https://www.youtube.com/results?search_query=face+pulls+cable+proper+form' },
       ]},
@@ -1585,35 +1595,35 @@ const DAYS = [
     warmup: 'Light cable fly ×15 · Arm circles ×20 · 1 warm-up set on each major movement',
     sections: [
       { label: 'Chest & Back', exercises: [
-        { name:'Cable Chest Fly / Pec Deck', sets:3, reps:'12', rest:'75 sec', kg:'35–50 kg',  lbs:'77–110 lbs/side',
+        { name:'Cable Chest Fly / Pec Deck', sets:2, reps:'6–8', rest:'75 sec', kg:'35–50 kg',  lbs:'77–110 lbs/side',
           note:'Pec deck machine (arm pads) OR cable machine with D-handles at chest height. Feel the stretch at full extension.',
           guide:'https://exrx.net/WeightExercises/PectoralSternal/LVPecDeckFly' },
-        { name:'Pull-ups',                   sets:3, reps:'10', rest:'90 sec', kg:'Bodyweight', lbs:'−10–20 kg assist if needed',
+        { name:'Pull-ups',                   sets:2, reps:'6–8', rest:'90 sec', kg:'Bodyweight', lbs:'−10–20 kg assist if needed',
           note:'Full hang at the bottom, chin over bar at the top. Use the assisted pull-up machine if needed.',
           guide:'https://www.youtube.com/results?search_query=pull+ups+proper+form' },
-        { name:'Single-arm Dumbbell Row',    sets:3, reps:'12', rest:'75 sec', kg:'24–32 kg',  lbs:'53–71 lbs',
+        { name:'Single-arm Dumbbell Row',    sets:2, reps:'6–8', rest:'75 sec', kg:'24–32 kg',  lbs:'53–71 lbs',
           note:'Knee and hand on bench. Pull elbow to ceiling — not out to the side.',
           guide:'https://www.youtube.com/results?search_query=single+arm+dumbbell+row+proper+form' },
       ]},
       { label: 'Shoulder Width Priority', exercises: [
-        { name:'Dumbbell Shoulder Press',        sets:3, reps:'12', rest:'75 sec', kg:'18–24 kg',    lbs:'40–53 lbs/hand', priority:true,
+        { name:'Dumbbell Shoulder Press',        sets:2, reps:'6–8', rest:'75 sec', kg:'18–24 kg',    lbs:'40–53 lbs/hand', priority:true,
           note:'Sit on upright bench. Slightly wider grip than barbell — activates more side delt.',
           guide:'https://www.youtube.com/results?search_query=seated+dumbbell+shoulder+press+proper+form' },
-        { name:'Lean-away Cable Lateral Raise',  sets:4, reps:'15', rest:'60 sec', kg:'7.5–12.5 kg', lbs:'16–27 lbs',      priority:true,
+        { name:'Lean-away Cable Lateral Raise',  sets:2, reps:'6–8', rest:'60 sec', kg:'7.5–12.5 kg', lbs:'16–27 lbs',      priority:true,
           note:'Single low cable. Grip the upright with your free hand and lean away from the machine. Better range of motion than standing upright.',
           guide:'https://exrx.net/WeightExercises/DeltoidLateral/CBLateralRaise' },
-        { name:'Reverse Pec Deck',               sets:3, reps:'15', rest:'60 sec', kg:'15–25 kg',    lbs:'33–55 lbs/side', priority:true,
+        { name:'Reverse Pec Deck',               sets:2, reps:'6–8', rest:'60 sec', kg:'15–25 kg',    lbs:'33–55 lbs/side', priority:true,
           note:'<strong>Same machine as pec deck — sit facing INTO it.</strong> Grab the handles from behind. Adds roundness to shoulder. Key for shoulder balance.',
           guide:'https://www.youtube.com/results?search_query=reverse+pec+deck+rear+delt+proper+form' },
-        { name:'Face Pulls',                     sets:3, reps:'15', rest:'60 sec', kg:'15–22.5 kg',  lbs:'33–50 lbs',
+        { name:'Face Pulls',                     sets:2, reps:'6–8', rest:'60 sec', kg:'15–22.5 kg',  lbs:'33–50 lbs',
           note:'Never skip this. Rope attachment, pulley at face height, pull to forehead with elbows flared wide. Protects the shoulder joint.',
           guide:'https://www.youtube.com/results?search_query=face+pulls+cable+proper+form' },
       ]},
       { label: 'Arms', exercises: [
-        { name:'Hammer Curls',              sets:3, reps:'12', rest:'60 sec', kg:'14–18 kg',   lbs:'31–40 lbs/hand',
+        { name:'Hammer Curls',              sets:2, reps:'6–8', rest:'60 sec', kg:'14–18 kg',   lbs:'31–40 lbs/hand',
           note:'Neutral grip (palms face each other). Hits the brachialis — adds thickness to the arm.',
           guide:'https://www.youtube.com/results?search_query=hammer+curls+proper+form' },
-        { name:'Overhead Tricep Extension', sets:3, reps:'12', rest:'60 sec', kg:'15–22.5 kg', lbs:'33–50 lbs',
+        { name:'Overhead Tricep Extension', sets:2, reps:'6–8', rest:'60 sec', kg:'15–22.5 kg', lbs:'33–50 lbs',
           note:'Cable rope overhead, or single dumbbell held with both hands. Elbows stay close to head throughout.',
           guide:'https://www.youtube.com/results?search_query=overhead+tricep+extension+cable+rope+proper+form' },
       ]},
@@ -1688,6 +1698,7 @@ function exCard(ex, dayId) {
           <div class="ex-arrow">▾</div>
         </div>
       </div>
+      <div class="ex-suggest"></div>
       <div class="ex-detail">
         <div class="wt-section" data-ex="${ex.name}" data-plan="${ex.kg}">
           <div class="wt-header">
@@ -2035,6 +2046,22 @@ function setCardWt(card, wt) {
   card.classList.add('has-wt');
   const wtEl = card.querySelector('.ex-my-wt');
   if (wtEl) wtEl.textContent = wt;
+  setCardSuggest(card);
+}
+
+// Shows "↑ Try X kg next session" directly on the collapsed exercise row,
+// so it is visible without opening the exercise.
+function setCardSuggest(card) {
+  const el = card.querySelector('.ex-suggest');
+  if (!el) return;
+  const suggest = wtSuggestion(card.dataset.ex);
+  if (suggest) {
+    el.textContent = `↑ Try ${suggest} kg next session`;
+    el.classList.add('on');
+  } else {
+    el.textContent = '';
+    el.classList.remove('on');
+  }
 }
 
 const DRUM_STEP = 0.5, DRUM_MAX = 200, DRUM_H = 48;
@@ -2394,7 +2421,6 @@ function progressCard(ex) {
   const delta = Math.round((cur - first) * 10) / 10;
   const dStr  = delta > 0 ? `+${delta}` : `${delta}`;
   const dCls  = delta > 0 ? 'up' : delta < 0 ? 'down' : '';
-  const suggest = wtSuggestion(ex.name);
   const safeName = ex.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
 
   const chart = hist.length >= 2 ? `
@@ -2420,7 +2446,6 @@ function progressCard(ex) {
         <div class="prog-stat"><div class="prog-stat-val ${dCls}">${dStr}</div><div class="prog-stat-lbl">Progress kg</div></div>
         <div class="prog-stat"><div class="prog-stat-val">${hist.length}</div><div class="prog-stat-lbl">Sessions</div></div>
       </div>
-      ${suggest ? `<div class="prog-suggestion">↑ Try ${suggest} kg next session</div>` : ''}
     </div>`;
 }
 
