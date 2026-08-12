@@ -162,6 +162,34 @@
     .complete-btn:hover, .complete-btn:active { background: rgba(240,160,48,0.18); }
 
     /* ── PROGRESS PAGE ───────────────────────────── */
+    .export-row { margin-bottom: 24px; }
+    .export-btn {
+      width: 100%;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      letter-spacing: 1.2px;
+      color: var(--text-2);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 13px 12px;
+      cursor: pointer;
+    }
+    .export-btn.copied { color: var(--green); border-color: rgba(72,200,120,0.45); }
+    #export-box {
+      display: none;
+      width: 100%;
+      height: 180px;
+      margin-top: 10px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--text-2);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 10px;
+    }
     .prog-summary {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -2232,6 +2260,57 @@ function toggleEquipGroup(dayId) {
   else buildOriginalView(dayId);
 }
 
+// ── WEIGHT EXPORT ──────────────────────────────────────────────────────────
+// All weight data lives in localStorage on this device only — there is no
+// server. This dumps it as plain text so it can be copied out for backup
+// or for adjusting the plan ranges.
+
+const EXPORT_UI = '<div class="export-row"><button class="export-btn" onclick="copyWeights(this)">COPY MY WEIGHTS</button><textarea id="export-box" readonly onclick="this.select()"></textarea></div>';
+
+function exportWeightsText() {
+  const lines = [];
+  const seen = new Set();
+  DAYS.forEach(day => {
+    if (!day.sections) return;
+    day.sections.forEach(sec => sec.exercises.forEach(ex => {
+      if (seen.has(ex.name)) return;
+      const hist = getWtHistory(ex.name);
+      const cur  = getWt(ex.name);
+      if (hist.length === 0 && cur === null) return;
+      seen.add(ex.name);
+      const trail = hist.map(h => `${h.date}:${h.weight}`).join(' ');
+      lines.push(`${day.short} | ${ex.name} | plan ${ex.kg} | now ${cur !== null ? cur + ' kg' : '—'} | ${hist.length} session${hist.length === 1 ? '' : 's'}${trail ? ' | ' + trail : ''}`);
+    }));
+  });
+  if (lines.length === 0) return 'No weights logged yet.';
+  return `MYFITNESS WEIGHT EXPORT · ${new Date().toISOString().slice(0, 10)}\n${lines.join('\n')}`;
+}
+
+function copyWeights(btn) {
+  const txt = exportWeightsText();
+  const ok = () => {
+    btn.textContent = 'COPIED ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'COPY MY WEIGHTS'; btn.classList.remove('copied'); }, 1800);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(ok).catch(() => showExportBox(txt));
+  } else {
+    showExportBox(txt);
+  }
+}
+
+// Fallback when the clipboard API is blocked (non-HTTPS, older iOS Safari):
+// show the text in a selectable box so it can be copied by hand.
+function showExportBox(txt) {
+  const box = document.getElementById('export-box');
+  if (!box) return;
+  box.value = txt;
+  box.style.display = 'block';
+  box.focus();
+  box.select();
+}
+
 // ── PROGRESS PAGE ──────────────────────────────────────────────────────────
 
 function sparklineSVG(hist) {
@@ -2516,7 +2595,7 @@ function buildProgressHTML() {
   });
 
   return `<div class="day-head"><div class="day-title">STATS</div></div>
-    ${deload}${summary}${comboSection}${cards}${volumeSection}`;
+    ${deload}${summary}${EXPORT_UI}${comboSection}${cards}${volumeSection}`;
 }
 
 function showProgress() {
